@@ -242,11 +242,11 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         """加载插件并按配置启动调度。"""
         self._load_state()
         if not self.config.plugin.enabled:
-            self.ctx.logger.info("群梗名片：配置中已禁用，不启动调度")
+            self.ctx.logger.info("麦改名：配置中已禁用，不启动调度")
             return
 
         self.ctx.logger.info(
-            "群梗名片：已加载（任务=%s，每 %s 分钟检查一次，换名概率 %.2f）",
+            "麦改名：已加载（任务=%s，每 %s 分钟检查一次，换名概率 %.2f）",
             self.config.generation.task_name,
             self.config.schedule.interval_minutes,
             self._trigger_chance(),
@@ -260,12 +260,12 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         """取消调度并落盘状态。"""
         await self._cancel_tasks()
         self._save_state()
-        self.ctx.logger.info("群梗名片：已卸载")
+        self.ctx.logger.info("麦改名：已卸载")
 
     async def on_config_update(self, scope: str, config_data: dict[str, Any], version: str) -> None:
         """配置热重载后重建调度。"""
         del config_data
-        self.ctx.logger.info("群梗名片：配置已更新（scope=%s，version=%s）", scope, version)
+        self.ctx.logger.info("麦改名：配置已更新（scope=%s，version=%s）", scope, version)
         self._bot_qq_cache = ""
         self._adapter_api_ok = None
         self._adapter_api_winner = ""
@@ -298,27 +298,27 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             delay = max(1, int(self.config.schedule.interval_minutes)) * 60.0
             chance = self._trigger_chance()
             self.ctx.logger.info(
-                "群梗名片：%.1f 分钟后掷一次骰子（换名概率 %.2f）", delay / 60.0, chance
+                "麦改名：%.1f 分钟后掷一次骰子（换名概率 %.2f）", delay / 60.0, chance
             )
             await asyncio.sleep(delay)
             if not self.config.plugin.enabled:
                 continue
             if self._in_quiet_hours():
-                self.ctx.logger.info("群梗名片：当前处于免打扰时段，跳过本轮")
+                self.ctx.logger.info("麦改名：当前处于免打扰时段，跳过本轮")
                 continue
             hit = random.random() < chance
             self._state["last_roll"] = {"at": time.time(), "hit": hit, "chance": chance}
             self._save_state()
             if not hit:
-                self.ctx.logger.info("群梗名片：这次没中签（%.2f），名片保持不变", chance)
+                self.ctx.logger.info("麦改名：这次没中签（%.2f），名片保持不变", chance)
                 continue
-            self.ctx.logger.info("群梗名片：中签（%.2f），开始换名", chance)
+            self.ctx.logger.info("麦改名：中签（%.2f），开始换名", chance)
             try:
                 await self._refresh_all(trigger="schedule")
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 - 定时任务不能因单次失败退出
-                self.ctx.logger.error("群梗名片：定时换名失败: %s", exc)
+                self.ctx.logger.error("麦改名：定时换名失败: %s", exc)
 
     def _trigger_chance(self) -> float:
         """把配置里的概率夹在 0~1，避免填出界导致行为诡异。"""
@@ -365,7 +365,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
     async def _refresh_all(self, *, trigger: str) -> list[str]:
         groups = await self._target_groups()
         if not groups:
-            self.ctx.logger.info("群梗名片：没有符合条件的群，跳过")
+            self.ctx.logger.info("麦改名：没有符合条件的群，跳过")
             return []
         results: list[str] = []
         for group in groups:
@@ -375,7 +375,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 - 单群失败不影响其他群
-                self.ctx.logger.error("群梗名片：群 %s 换名异常: %s", group.get("group_id"), exc)
+                self.ctx.logger.error("麦改名：群 %s 换名异常: %s", group.get("group_id"), exc)
             await asyncio.sleep(random.uniform(1.5, 6.0))
         self._state["last_run"] = time.time()
         self._save_state()
@@ -390,7 +390,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         stream_id = await self._stream_id_of(group_id)
         transcript = await self._transcript(stream_id) if stream_id else ""
         if not transcript:
-            self.ctx.logger.info("群梗名片：群 %s 近期没有聊天记录，只按人设生成", group_id)
+            self.ctx.logger.info("麦改名：群 %s 近期没有聊天记录，只按人设生成", group_id)
         memory = await self._memory(group_name, group_id, self._recent_hint(transcript))
         card = await self._generate(group_name, transcript, memory, mood=mood)
         if not card:
@@ -406,7 +406,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             "group_name": group_name,
         }
         self._save_state()
-        self.ctx.logger.info("群梗名片：群 %s 新名片「%s」（来源 %s）", group_id, card, trigger)
+        self.ctx.logger.info("麦改名：群 %s 新名片「%s」（来源 %s）", group_id, card, trigger)
         return True, card
 
     # ==================== 取材 ====================
@@ -431,11 +431,11 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             return [item for item in data if isinstance(item, dict)]
 
         # 兜底：用宿主已经建立的群聊流（只能覆盖麦麦见过的群）
-        self.ctx.logger.warning("群梗名片：NapCat get_group_list 不可用，回退到宿主群聊流")
+        self.ctx.logger.warning("麦改名：NapCat get_group_list 不可用，回退到宿主群聊流")
         try:
             streams = await self.ctx.chat.get_group_streams()
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.error("群梗名片：获取群列表失败: %s", exc)
+            self.ctx.logger.error("麦改名：获取群列表失败: %s", exc)
             return []
         if not isinstance(streams, list):
             return []
@@ -449,7 +449,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             stream = await self.ctx.chat.get_stream_by_group_id(str(group_id))
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：查询群 %s 的聊天流失败: %s", group_id, exc)
+            self.ctx.logger.warning("麦改名：查询群 %s 的聊天流失败: %s", group_id, exc)
             return ""
         if isinstance(stream, dict):
             return str(stream.get("stream_id") or stream.get("session_id") or "")
@@ -461,7 +461,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             streams = await self.ctx.chat.get_group_streams()
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：反查群号失败: %s", exc)
+            self.ctx.logger.warning("麦改名：反查群号失败: %s", exc)
             return ""
         if not isinstance(streams, list):
             return ""
@@ -478,7 +478,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             stream = await self.ctx.chat.get_stream_by_group_id(str(group_id))
         except Exception as exc:  # noqa: BLE001
-            self._log_warning("群梗名片：查询群 %s 的名称失败: %s", group_id, exc)
+            self._log_warning("麦改名：查询群 %s 的名称失败: %s", group_id, exc)
             stream = None
         if isinstance(stream, dict) and str(stream.get("group_name") or "").strip():
             return str(stream["group_name"]).strip()
@@ -498,7 +498,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                 filter_mai=_FILTER_BOT_MESSAGES,
             )
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：读取群消息失败: %s", exc)
+            self.ctx.logger.warning("麦改名：读取群消息失败: %s", exc)
             return ""
         if not isinstance(messages, list) or not messages:
             return ""
@@ -510,7 +510,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                 truncate=True,
             )
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：消息转文本失败: %s", exc)
+            self.ctx.logger.warning("麦改名：消息转文本失败: %s", exc)
             return ""
         if not isinstance(text, str) or not text.strip():
             return ""
@@ -548,7 +548,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                 mode="search",
             )
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：长期记忆检索失败: %s", exc)
+            self.ctx.logger.warning("麦改名：长期记忆检索失败: %s", exc)
             return ""
         if not isinstance(content, str):
             return ""
@@ -584,7 +584,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             value = await self.ctx.config.get("bot.alias_names", [])
         except Exception as exc:  # noqa: BLE001
-            self._log_warning("群梗名片：读取宿主配置 bot.alias_names 失败: %s", exc)
+            self._log_warning("麦改名：读取宿主配置 bot.alias_names 失败: %s", exc)
             return []
         if isinstance(value, str):
             raw: list[Any] = re.split(r"[,，、;；\s]+", value)
@@ -603,7 +603,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             value = await self.ctx.config.get(key, "")
         except Exception as exc:  # noqa: BLE001
-            self._log_warning("群梗名片：读取宿主配置 %s 失败: %s", key, exc)
+            self._log_warning("麦改名：读取宿主配置 %s 失败: %s", key, exc)
             return ""
         return str(value or "").strip()
 
@@ -696,7 +696,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                     if "TIMEOUT" in reason.upper() or "超时" in reason
                     else f"模型调用失败: {reason}"
                 )
-                self.ctx.logger.error("群梗名片：调用模型失败: %s", exc)
+                self.ctx.logger.error("麦改名：调用模型失败: %s", exc)
                 feedback = f"上一次调用出错了（{exc}），请直接给出群名片。"
                 continue
 
@@ -711,14 +711,14 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             if candidate:
                 banned = self._hit_forbidden(candidate)
                 if banned:
-                    self.ctx.logger.warning("群梗名片：第 %s 次结果含禁用词 %r: %r", index + 1, banned, candidate)
+                    self.ctx.logger.warning("麦改名：第 %s 次结果含禁用词 %r: %r", index + 1, banned, candidate)
                     self._last_gen_error = f"模型给的「{candidate}」里带了不让用的词「{banned}」"
                     feedback = f"「{banned}」是禁止出现的词，换个说法重新给一个群名片。"
                     continue
                 if not root_chars or any(char in candidate for char in root_chars):
                     return candidate
                 self.ctx.logger.warning(
-                    "群梗名片：第 %s 次结果没带上名字词根（%s）: %r",
+                    "麦改名：第 %s 次结果没带上名字词根（%s）: %r",
                     index + 1,
                     "、".join(roots),
                     candidate,
@@ -731,7 +731,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                     f"像「大{sample_root[0]}脚」这种结构，重新给一个。"
                 )
                 continue
-            self.ctx.logger.warning("群梗名片：第 %s 次生成结果不合法: %r", index + 1, raw[:80])
+            self.ctx.logger.warning("麦改名：第 %s 次生成结果不合法: %r", index + 1, raw[:80])
             feedback = "上一次输出不合法（可能带引号、换行、解释或超长），请只输出一行群名片文本。"
         return ""
 
@@ -966,19 +966,19 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                 continue
             if self._adapter_api_winner != api_name:
                 self._adapter_api_winner = api_name
-                self.ctx.logger.info("群梗名片：已改用适配器通道 %s，无需 NapCat HTTP", api_name)
+                self.ctx.logger.info("麦改名：已改用适配器通道 %s，无需 NapCat HTTP", api_name)
             self._adapter_api_ok = True
             return response
 
         if missing and missing == len(candidates):
             self._adapter_api_ok = False
             self.ctx.logger.info(
-                "群梗名片：找不到可用的适配器 API（%s），改用直连 NapCat HTTP: %s",
+                "麦改名：找不到可用的适配器 API（%s），改用直连 NapCat HTTP: %s",
                 "、".join(candidates),
                 last_error,
             )
         else:
-            self._log_warning("群梗名片：适配器通道都不可用，本次回退直连 HTTP: %s", last_error)
+            self._log_warning("麦改名：适配器通道都不可用，本次回退直连 HTTP: %s", last_error)
         return None
 
     async def _onebot(self, action: str, **payload: Any) -> dict[str, Any]:
@@ -1012,7 +1012,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         try:
             raw = await asyncio.to_thread(_post)
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：调用 NapCat %s 失败: %s", action, exc)
+            self.ctx.logger.warning("麦改名：调用 NapCat %s 失败: %s", action, exc)
             return {"status": "failed", "message": f"{type(exc).__name__}: {exc}", "retcode": -1}
         try:
             parsed = json.loads(raw)
@@ -1033,7 +1033,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         if isinstance(data, dict):
             self._bot_qq_cache = str(data.get("user_id") or "").strip()
         if not self._bot_qq_cache:
-            self.ctx.logger.error("群梗名片：拿不到机器人 QQ 号（get_login_info 没返回），请检查 OneBot 通道")
+            self.ctx.logger.error("麦改名：拿不到机器人 QQ 号（get_login_info 没返回），请检查 OneBot 通道")
         return self._bot_qq_cache
 
     async def _set_card(self, group_id: str, card: str) -> bool:
@@ -1048,7 +1048,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
         )
         if isinstance(resp, dict) and str(resp.get("status")) == "ok":
             return True
-        self.ctx.logger.error("群梗名片：set_group_card 失败: %s", resp)
+        self.ctx.logger.error("麦改名：set_group_card 失败: %s", resp)
         return False
 
     async def _current_card(self, group_id: str) -> str:
@@ -1086,7 +1086,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
                     "last_roll": roll if isinstance(roll, dict) else {},
                 }
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：读取状态失败: %s", exc)
+            self.ctx.logger.warning("麦改名：读取状态失败: %s", exc)
 
     def _save_state(self) -> None:
         try:
@@ -1094,7 +1094,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(json.dumps(self._state, ensure_ascii=False, indent=2), encoding="utf-8")
         except Exception as exc:  # noqa: BLE001
-            self.ctx.logger.warning("群梗名片：写入状态失败: %s", exc)
+            self.ctx.logger.warning("麦改名：写入状态失败: %s", exc)
 
     def context_config(self) -> ContextSection:
         """读取上下文配置（便于集中取默认值）。"""

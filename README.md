@@ -1,4 +1,4 @@
-# 群梗名片 (Group Meme Nickname)
+# 麦改名 (Mai Change Name)
 
 拿**麦麦自己的名字当词根**，嫁接**这个群最近真正在聊的梗**，造一个像群友互相起外号那样的 QQ 群名片。
 
@@ -43,13 +43,13 @@
 - 一个可用的 `replyer` 模型任务
 
 没装 `napcat-adapter`（例如用 SnowLuma / Lagrange）也能用：此时回退到备选通道
-**NapCat OneBot v11 HTTP 服务**，需要手动开（NapCat 默认不开，见安装第 3 步）。
+**NapCat OneBot v11 HTTP 服务**，需要手动开（NapCat 默认不开，见上面安装小节末尾的说明）。
 
 ## 安装
 
-**插件市场（推荐）**：在 MaiBot WebUI 的插件市场里搜「群梗名片」安装即可。
+**插件市场（推荐）**：在 MaiBot WebUI 的插件市场里搜「麦改名」安装即可。
 
-**手动**：把整个 `maibot-poetic-group-card` 文件夹放进 MaiBot 根目录的 `plugins/` 里，然后重启 MaiBot，
+**手动**：把仓库整个文件夹放进 MaiBot 根目录的 `plugins/` 里（文件夹叫什么无所谓，插件按 `_manifest.json` 里的 `id` 识别），然后重启 MaiBot，
 或在 WebUI 的插件管理页加载本插件。首次加载时宿主会按插件的配置模型自动生成 `config.toml`
 ——**不用手写**；`config_version` 升级时宿主会按新默认值重建它，并保留你自己加的注释。
 
@@ -177,7 +177,7 @@ WebSocket，不必额外开 HTTP 端口。只有适配器缺失/不可用时，�
 
 ```toml
 [plugin]
-command_permissions = { "geffnt.poetic-group-card.group_card" = { allow_users = ["qq:123456"], allow_chats = [] } }
+command_permissions = { "geffnt.mai-change-name.group_card" = { allow_users = ["qq:123456"], allow_chats = [] } }
 ```
 
 ## 常见问题
@@ -189,7 +189,7 @@ command_permissions = { "geffnt.poetic-group-card.group_card" = { allow_users = 
 **改不了名片 / 连接被拒**
 先在群里发 `/麦片 探测`，它会分别报告两条通道：
 
-- ① 显示「napcat-adapter WebSocket：可用」却仍写不进去 → 问题在群权限（见上一条）。
+- ① 显示「适配器 WebSocket：可用（通道 maibot-team.napcat-adapter）」却仍写不进去 → 问题在群权限（见上一条）。
 - ① 和 ② 都不可用 → 检查 `napcat-adapter` 有没有加载、WebSocket 有没有连着；或者去
   开 NapCat 的 HTTP 服务器，端口要和代码常量 `_NAPCAT_HTTP_BASE_URL`（默认
   `http://127.0.0.1:3000`）一致；NapCat 不在本机时改这个常量里的 IP。
