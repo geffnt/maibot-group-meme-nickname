@@ -1,17 +1,18 @@
-"""诗意群名片 (Poetic Group Card)
+"""群梗名片 (Group Meme Nickname)
 
-让麦麦结合「这个群最近发生了什么」与「自己的长期记忆」，用人设驱动的语气
-给自己起一个有诗意的群名片，并通过 NapCat 的 OneBot v11 HTTP 接口写回 QQ。
+让麦麦结合「这个群最近在聊什么」与「自己的长期记忆」，用人设驱动的语气
+给自己起一个带群梗的群名片，并通过适配器已连接的 OneBot 通道写回 QQ
+（适配器不可用时才回退到 NapCat 的 OneBot v11 HTTP 接口）。
 
 数据流：
-    NapCat get_group_list              → 群号 / 群名
-    chat.get_stream_by_group_id(群号)   → stream_id
-    message.get_recent(stream_id)      → 最近消息
-    message.build_readable(...)        → 群聊近况文本
-    knowledge.search(group_id=...)     → 长期记忆片段
+    宿主群聊流 / OneBot get_group_list    → 群号 / 群名
+    chat.get_stream_by_group_id(群号)    → stream_id
+    message.get_recent(stream_id)       → 最近消息
+    message.build_readable(...)         → 群聊近况文本
+    knowledge.search(group_id=...)      → 长期记忆片段
     config.get(bot.nickname / personality.*) → 人设
     ctx.llm.generate(task_name="replyer")    → 群名片文本
-    NapCat set_group_card              → 生效
+    api.call(adapter.napcat.action.call, set_group_card) → 生效
 """
 
 from __future__ import annotations
@@ -122,10 +123,6 @@ class PersonaSection(PluginConfigBase):
         default=True,
         description="把宿主 bot.alias_names 也当作可用的名字词根（群里可能用别的名字叫你）",
     )
-    extra_instruction: str = Field(
-        default="",
-        description="附加要求，例如：不超过 4 个字、只用群里的梗、别太文艺、避免重复用过的梗",
-    )
     extra_personality: str = Field(
         default="",
         description="在宿主人设之外额外叠加的人格，例如「最近在群里自称脚神，说话爱用叠词」",
@@ -137,6 +134,10 @@ class PersonaSection(PluginConfigBase):
     forbidden_words: list[str] = Field(
         default=[],
         description="名片里禁止出现的词或字（如「诗」「梦」「夜」），一旦出现就重新生成",
+    )
+    extra_instruction: str = Field(
+        default="",
+        description="附加要求，例如：不超过 4 个字、只用群里的梗、别太文艺、避免重复用过的梗",
     )
 
 
@@ -210,7 +211,7 @@ class ToolSection(PluginConfigBase):
 
 
 class PoeticGroupCardConfig(PluginConfigBase):
-    """诗意群名片插件配置。"""
+    """群梗名片插件配置。"""
 
     plugin: PluginSection = Field(default_factory=PluginSection)
     bot: BotSection = Field(default_factory=BotSection)
@@ -222,7 +223,7 @@ class PoeticGroupCardConfig(PluginConfigBase):
 
 
 class PoeticGroupCardPlugin(MaiBotPlugin):
-    """结合群内近况与长期记忆，给麦麦自己换一个诗意的群名片。"""
+    """结合群内近况与长期记忆，给麦麦自己换一个带群梗的群名片。"""
 
     config_model = PoeticGroupCardConfig
 
@@ -1111,7 +1112,7 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
     async def handle_group_card(self, stream_id: str = "", **kwargs: Any) -> tuple[bool, str, bool]:
         """处理 /麦片（兼容 /名片）系列命令。"""
         if not self.config.plugin.enabled:
-            return False, "诗意群名片插件未启用", True
+            return False, "群梗名片插件未启用", True
 
         arg = self._command_arg(kwargs)
         keyword, _, rest = arg.partition(" ")
@@ -1308,5 +1309,5 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
 
 
 def create_plugin() -> PoeticGroupCardPlugin:
-    """创建诗意群名片插件实例。"""
+    """创建群梗名片插件实例。"""
     return PoeticGroupCardPlugin()
