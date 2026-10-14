@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "id": "geffnt.group-meme-nickname",
   "version": "2.2.0",
-  "name": "麦改名 (Mai Change Name)",
+  "name": "群梗名片 (Group Meme Nickname)",
   "description": "拿麦麦自己的名字当词根，嫁接群里最近真正在聊的梗，造一个群友外号风格的群名片。读写优先走 napcat-adapter 已连接的 WebSocket（公开 API adapter.napcat.action.call），无需另开 NapCat HTTP 服务器，HTTP 仅作回退",
   "author": {
     "name": "geffnt",
