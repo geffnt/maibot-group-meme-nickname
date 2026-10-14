@@ -177,7 +177,7 @@ WebSocket，不必额外开 HTTP 端口。只有适配器缺失/不可用时，�
 
 ```toml
 [plugin]
-command_permissions = { "geffnt.mai-change-name.group_card" = { allow_users = ["qq:123456"], allow_chats = [] } }
+command_permissions = { "geffnt.group-meme-nickname.group_card" = { allow_users = ["qq:123456"], allow_chats = [] } }
 ```
 
 ## 常见问题
