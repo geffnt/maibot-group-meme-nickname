@@ -1,0 +1,15 @@
+# 运行时生成物，不入库
+__pycache__/
+*.pyc
+*.pyo
+
+# 虚拟环境
+.venv/
+venv/
+
+# 宿主生成/维护的运行时数据：config.toml 由宿主按插件的配置模型生成，
+# 且可能含有安装者自己的值（如 bot.base_name），所以不进仓库。
+config.toml
+config_back/
+state.json
+state.json.*
