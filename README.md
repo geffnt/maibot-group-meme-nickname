@@ -113,7 +113,7 @@ command_permissions = { "geffnt.group-meme-nickname.group_card" = { allow_users 
 
 ## 注意事项
 
-本版本要求 MaiBot 1.3.0 或更高的 1.3.x 版本，以及 maibot-plugin-sdk 2.10.0 或更高版本。
+本版本要求 MaiBot 1.3.x（最低 1.3.0），以及 maibot-plugin-sdk 2.x（最低 2.10.0）；manifest 里的上限按这个范围填（1.3.99 / 2.99.99），没有替未来的版本背书。本机实测环境是 MaiBot 1.3.5 + maibot-plugin-sdk 2.11.0。
 
 config.toml 由宿主按插件的配置模型自动生成，不需要手写；config_version 升级时会按新默认值重建并保留注释。
 
