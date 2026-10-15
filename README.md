@@ -6,7 +6,7 @@
 
 - 现场造名：读群里最近的聊天记录、检索长期记忆、取宿主人设，一起交给 replyer 现造一个名字。
 - 词根校验：名字必须带上「麦麦」里的字，不带就重造（默认最多生成 2 回）。
-- 定时换名：默认一天检查一次、30% 概率真的换，支持免打扰时段和群黑白名单。
+- 定时换名：默认关闭；开启后每 1440 分钟掷一次骰子、30% 概率真的换，支持免打扰时段和群黑白名单。
 - 手动命令：可用 `/麦片` 系列命令换名、预览、指定文本、恢复主名、查状态。
 - 智能换名：可把 `change_my_group_card` 工具交给 Planner，让麦麦自己决定换不换。
 - 权限保护：命令默认只对 `[plugin] permission` 里的账号开放，也可按命令 ID 单独放行。
@@ -52,7 +52,7 @@
 
 `generation.style_hints`：造词手法池，每轮随机挑一个（嵌字 / 增字 / 倒装 / 谐音 / 叠字 / 合词）。
 
-`schedule.enabled`：是否开启定时自动换名，默认开启。
+`schedule.enabled`：是否开启定时自动换名，默认关闭；开启后默认对所有群生效，只想在指定群生效请填 schedule.whitelist_groups。
 
 `schedule.interval_minutes`：多久检查一次，默认 1440 分钟（一天）。
 
@@ -60,7 +60,7 @@
 
 `schedule.quiet_hours`：免打扰时段，例如 `["02:00-07:00"]`，支持跨零点。
 
-`schedule.whitelist_groups`：允许定时换名生效的群，空列表表示不限制。
+`schedule.whitelist_groups`：允许定时换名生效的群；空列表表示不限制，也就是所有群都会换。
 
 `schedule.blacklist_groups`：这些群绝不改动。
 
@@ -100,7 +100,10 @@ bot.base_name = "麦麦"
 预览、现在、状态、探测这类查询只回查询结果。
 
 命令走宿主的受保护命令机制（permission="operator"），默认只有 config/bot_config.toml 里
-[plugin] permission 列出的账号和 WebUI / 控制台的本地操作者能触发；定时换名和 Planner 工具调用不受限制。
+[plugin] permission 列出的账号和 WebUI / 控制台的本地操作者能触发。
+
+定时换名和 Planner 工具调用不受这条命令权限约束：schedule.enabled 打开后按时换名不经过命令权限；
+tool.enabled 打开后 change_my_group_card 由 Planner 自己调用，模型就能改名片。
 想让别的群成员也能用，在宿主配置里按命令 ID 放行：
 
 ```toml
@@ -120,7 +123,8 @@ config.toml 由宿主按插件的配置模型自动生成，不需要手写；co
 
 插件优先复用 napcat-adapter / snowluma-adapter 已经连着的那条连接；两个适配器都没有或都不可用时，才回退到本机 http://127.0.0.1:3000 的 NapCat OneBot HTTP 服务。
 
-定时换名默认开启，不想让它自己换请先关闭 schedule.enabled。
+定时换名默认关闭，装好后不会自己动名片；一旦打开 schedule.enabled 就是所有群都换（whitelist_groups 留空 = 不限制），
+按默认值约每 1440 分钟掷一次骰子、30% 概率真的换，平均三天多换一次。
 
 名字由模型现场生成，没有人审；群里不适合出现的字用 persona.forbidden_words 卡掉。
 

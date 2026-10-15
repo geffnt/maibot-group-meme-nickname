@@ -11,8 +11,11 @@
     message.build_readable(...)         → 群聊近况文本
     knowledge.search(group_id=...)      → 长期记忆片段
     config.get(bot.nickname / personality.*) → 人设
-    ctx.llm.generate(task_name="replyer")    → 群名片文本
+    ctx.call_capability("llm.generate", timeout_ms=120000)    → 群名片文本
     api.call(adapter.napcat.action.call, set_group_card) → 生效
+
+走 call_capability 而不是 ctx.llm.generate，是为了传 timeout_ms：
+SDK 包装层默认 30s，会把思考模型的生成截断成空结果。
 """
 
 from __future__ import annotations
@@ -53,7 +56,10 @@ class PluginSection(PluginConfigBase):
     __ui_order__ = 0
 
     enabled: bool = Field(default=True, description="是否启用插件")
-    config_version: str = Field(default="1.2.0", description="配置版本")
+    config_version: str = Field(
+        default="1.3.0",
+        description="配置版本；改动配置模型或默认值后递增，宿主据此重建已有的 config.toml",
+    )
 
 
 # 下面这些要么是内部管道、要么基本没人会改，就不做成配置项了，免得配置文件里全是噪音。
@@ -186,7 +192,10 @@ class ScheduleSection(PluginConfigBase):
     __ui_icon__ = "clock"
     __ui_order__ = 6
 
-    enabled: bool = Field(default=True, description="是否开启定时自动换名")
+    enabled: bool = Field(
+        default=False,
+        description="是否开启定时自动换名；默认关闭，开启后默认对所有群生效，可用 whitelist_groups 限定",
+    )
     interval_minutes: int = Field(default=1440, description="多久检查一次（分钟），默认 1440 = 一天")
     trigger_probability: float = Field(
         default=0.3,
@@ -246,12 +255,18 @@ class PoeticGroupCardPlugin(MaiBotPlugin):
             self.ctx.logger.info("群梗名片：配置中已禁用，不启动调度")
             return
 
-        self.ctx.logger.info(
-            "群梗名片：已加载（任务=%s，每 %s 分钟检查一次，换名概率 %.2f）",
-            self.config.generation.task_name,
-            self.config.schedule.interval_minutes,
-            self._trigger_chance(),
-        )
+        if self.config.schedule.enabled:
+            self.ctx.logger.info(
+                "群梗名片：已加载（任务=%s，每 %s 分钟检查一次，换名概率 %.2f）",
+                self.config.generation.task_name,
+                self.config.schedule.interval_minutes,
+                self._trigger_chance(),
+            )
+        else:
+            self.ctx.logger.info(
+                "群梗名片：已加载（任务=%s，定时换名已关闭，可用 /麦片 手动换）",
+                self.config.generation.task_name,
+            )
         if self.config.schedule.enabled:
             self._restart_scheduler()
         if _REFRESH_ON_START:
