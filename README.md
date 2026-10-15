@@ -113,7 +113,7 @@ command_permissions = { "geffnt.group-meme-nickname.group_card" = { allow_users 
 
 ## 注意事项
 
-本版本要求 MaiBot 1.3.x（最低 1.3.0），以及 maibot-plugin-sdk 2.x（最低 2.10.0）；manifest 里的上限按这个范围填（1.3.99 / 2.99.99），没有替未来的版本背书。本机实测环境是 MaiBot 1.3.5 + maibot-plugin-sdk 2.11.0。
+实测环境是 MaiBot 1.3.6 + maibot-plugin-sdk 2.13.0（宿主版本取主程序 pyproject.toml，SDK 版本取 python-env 里 maibot-plugin-sdk 的发行版号），manifest 的兼容范围就按这两个版本封顶（host 1.3.0~1.3.6、sdk 2.10.0~2.13.0），没有替没验证过的版本背书。换到更新或更旧的宿主/SDK 上可能被判为不兼容，遇到这种情况提个 Issue 说明你的版本，我再按实际环境测一遍。
 
 config.toml 由宿主按插件的配置模型自动生成，不需要手写；config_version 升级时会按新默认值重建并保留注释。
 
@@ -127,5 +127,7 @@ config.toml 由宿主按插件的配置模型自动生成，不需要手写；co
 按默认值约每 1440 分钟掷一次骰子、30% 概率真的换，平均三天多换一次。
 
 名字由模型现场生成，没有人审；群里不适合出现的字用 persona.forbidden_words 卡掉。
+
+Planner 工具调用不占命令权限：`/麦片` 受 operator 权限约束，`change_my_group_card` 不受这条约束，tool.enabled 打开后模型自己就能改名片（改的是麦麦自己的卡）。
 
 生成的名字太长或带引号时，调小 bot.max_length，或者把 generation.temperature 降到 0.8 左右。

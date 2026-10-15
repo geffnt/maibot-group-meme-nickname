@@ -9,17 +9,18 @@
     "url": "https://github.com/geffnt"
   },
   "license": "MIT",
+  "plugin_type": "utility",
   "urls": {
     "repository": "https://github.com/geffnt/maibot-group-meme-nickname",
     "documentation": "https://github.com/geffnt/maibot-group-meme-nickname/blob/main/README.md"
   },
   "host_application": {
     "min_version": "1.3.0",
-    "max_version": "1.3.99"
+    "max_version": "1.3.6"
   },
   "sdk": {
     "min_version": "2.10.0",
-    "max_version": "2.99.99"
+    "max_version": "2.13.0"
   },
   "dependencies": [],
   "capabilities": [
