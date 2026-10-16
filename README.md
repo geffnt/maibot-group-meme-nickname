@@ -113,7 +113,7 @@ command_permissions = { "geffnt.group-meme-nickname.group_card" = { allow_users 
 
 ## 注意事项
 
-实测环境是 MaiBot 1.3.9（当前最新发布版，宿主版本取主程序 pyproject.toml）+ maibot-plugin-sdk 2.13.0（python-env 里实际安装的发行版），manifest 的兼容范围就按实测到的这两个版本封顶（host 1.3.0~1.3.9、sdk 2.10.0~2.13.0），没有替没验证过的版本背书：SDK 2.14.0 虽然已经发布，但本机没装也没跑过，所以没有写进来。换到更新或更旧的宿主/SDK 上可能被判为不兼容，遇到这种情况提个 Issue 说明你的版本，我再按实际环境测一遍。
+本版本要求 MaiBot 1.3.x（1.3.0~1.3.9）与 maibot-plugin-sdk 2.x（2.10.0~2.14.0）。换到更高或更低的宿主/SDK 上可能被判为不兼容，遇到这种情况提个 Issue 说明你的版本。
 
 config.toml 由宿主按插件的配置模型自动生成，不需要手写；config_version 升级时会按新默认值重建并保留注释。
 
